@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+</head>
+
+<body>
+
+
+<h5>Clock</h5>
+<span id="clock"></span>
+
+<h5>Back/Forward</h5>
+<input type="button" id="backid" value="Back">
+<input type="button" id="nextid" value="Next"> 
+
+<input type="button" id="gobottomid" value="Press for going to GET button">
+
+<h4 id="pages_id">Choose the page, please</h4>
+
+<a href="./page.html">Text</a>
+<a href="./json.json">json</a>
+
+<div id="target_for_insert"></div>
+<div id="target_for_insert_for_get"></div>
+
+<form request_type="POST" id="formid" href="log.py">
+    <label for="area_id" >value?</label>
+    <input type="textarea" value="value?" id="area_id"></input>
+    <input type="button" id="buttonid" value="Press for POST request!"></input>
+</form>
+
+<div>
+
+<input type="button" id="getbuttonid" value="Press for GET request!">
+
+<input type="button" id="gotopid" value="Press to go to the top">
+
+<input type="button" id="goanotherpageid" value="Press to go to another page">
+
+<style>
+
+#clock {
+    font: bold 24pt sans;
+    background: #ddf;
+    padding: 10px;
+    border: solid black 2px;
+    border-radius: 10 px;
+}
+
+div#target_for_insert, div#target_for_insert_for_get {
+    font: bold 24pt sans;
+    padding: 10px;
+    border: solid white 5px;
+    border-radius: 10px;
+}
+
+</style>
+
+
+<script>
+    window.onload = function() {
+        // Clock
+        function displayTime() {
+            var now = new Date();
+            var el = document.getElementById("clock");
+            el.innerHTML = now.toLocaleTimeString();
+            setTimeout(displayTime, 1000)            
+        }        
+
+        displayTime();
+
+        // POST request
+
+        var f = document.getElementById("buttonid");
+        var target_for_insert = document.getElementById("target_for_insert");
+
+        function postMessage(msg) {
+            var r =  new XMLHttpRequest();
+            r.open("POST", "/cgi-bin/log.py");
+            r.setRequestHeader("Content-Type", "text-plain;charset=UTF-8");
+            r.send(msg);
+            r.onreadystatechange = function() {
+                if (r.readyState === 4 && r.status === 200) {
+                    var type = r.getResponseHeader("Content-Type");
+                    if (type.match(/^text/)){
+                        new_element = document.getElementById("target_for_insert");
+                        new_element.insertAdjacentHTML("afterbegin", r.responseText);
+                        target_for_insert.style.borderColor = "black";
+                        if (target_for_insert.style.backgroundColor === "blue") {
+                            target_for_insert.style.backgroundColor = "yellow";
+                        } else {
+                            target_for_insert.style.backgroundColor = "blue";
+                        }                    
+                    }
+                }
+            }
+        }
+   
+        f.addEventListener("click",
+            function() {
+                postMessage("pressed");
+            }
+        );
+
+
+        // GET request
+
+        function getMessage() {
+            var r = new XMLHttpRequest();
+            r.open("GET", "/cgi-bin/get.py?param=userinput");
+            r.onreadystatechange = function() {
+                if (r.readyState === 4 && r.status === 200) {
+                    var type = r.getResponseHeader("Content-Type");
+                    if (type.match(/^text/)) {
+                        elem = document.getElementById("target_for_insert_for_get");
+                        elem.insertAdjacentHTML("afterbegin", r.responseText);
+                        target_for_insert_for_get.style.borderColor = "black";
+                        if (target_for_insert_for_get.style.backgroundColor === "blue") {
+                            target_for_insert_for_get.style.backgroundColor = "yellow";
+                        } else {
+                            target_for_insert_for_get.style.backgroundColor = "blue";
+                        }
+
+                    }
+                }
+            }
+            r.send(null);
+        }
+
+        var g = document.getElementById("getbuttonid");
+
+        g.addEventListener("click",
+            function() {
+                getMessage();
+            }
+        );
+
+        var target_for_insert_for_get = document.getElementById("target_for_insert_for_get");        
+
+
+        // Prompt & confirm
+
+        do {
+            var n = prompt("Type your name");
+            var ok = confirm("Are you sure?");
+        } while (!ok)
+       
+        alert("Hello" + ", " + n);
+
+
+        // Location
+         
+        var top = document.getElementById("gotopid");
+        top.addEventListener("click",
+            function() {
+                location="#top";
+            }
+        );
+        
+        var bottom = document.getElementById("gobottomid");
+        bottom.addEventListener("click",
+            function() {
+                location = "#target_for_insert_for_get";
+            }
+        );
+
+        var anotherPage = document.getElementById("goanotherpageid");
+        anotherPage.addEventListener("click",
+            function() {
+                location = "page.html";
+            }
+        );
+
+        
+        // History
+        
+        var back = document.getElementById("backid");
+        var next = document.getElementById("nextid");
+
+        back.addEventListener("click",
+            function() {
+                history.back();
+            }    
+        );
+
+        next.addEventListener("click",
+            function() {
+                history.forward(); 
+            }
+        );
+
+    }
+
+
+    // JSONP
+
+    function getJSONP(url, callback) {
+        var cbnum = "cb" + getJSONP.counter++;
+        var cbname = "getJSONP." + cbnum;
+        
+        if (url.indexOf("?") === -1) {
+            url += "?jsonp=" + cbname;            
+        } else {
+            url += "&jsonp=" + cbname;
+        }
+
+        var script = document.createElement("script");
+
+        getJSONP[cbnum] = function(response) {
+            try {
+                callback(response);
+            }
+            finally {
+                delete getJSONP[cbnum];
+                script.parentNode.removeChild(script);
+            }
+        }
+
+        script.src = url;
+        document.body.appendChild(script);
+    }
+
+    getJSONP.counter = 0;    
+</script>	
+
+</body>
+</html>
